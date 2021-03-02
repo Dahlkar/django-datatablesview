@@ -4,7 +4,7 @@ import os
 from setuptools import find_packages, setup
 
 setup(
-    name='django-datatables',
+    name='django-datatablesview',
     version='0.0.1',
     description='A Django app that integrates with DataTables.net javascript api.',
     author='dahlkar',
