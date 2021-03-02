@@ -1,0 +1,13 @@
+<div class="table">
+    <table data-id="{{ id }}" class="data-table" data-config="{{ config }}" data-update-interval="{{ datatable.update_interval }}" style="width: 100%">
+        <thead class="{% if not datatable.show_columns %}d-none{% endif %}">
+            <tr class="table__header">
+                {% for header, field, orderable, visible, togglable in columns %}
+                <th id="{{ field }}" data-data="{{ field }}" name="{{ field }}" {% if orderable is not True %}data-orderable="false"{% endif %} {% if visible is not True %}data-visible="false"{% endif %}>
+                    {{ header|capfirst }}
+                </th>
+                {% endfor %}
+            </tr>
+        </thead>
+    </table>
+</div>

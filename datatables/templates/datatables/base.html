@@ -1,0 +1,20 @@
+{% load static datatables %}
+
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        {% block css %}
+        {% css_bundle %}
+        {% endblock css %}
+    </head>
+    <body>
+        {% block header %}{% endblock %}
+        {% block content_wrapper %}
+        {% block content %}{% endblock %}
+        {% endblock %}
+    </body>
+    {% block script %}
+    {% js_bundle %}
+    {% endblock script %}
+</html>

@@ -1,0 +1,11 @@
+{% for header, field, _, visible, togglable in columns %}
+{% if togglable %}
+<label>
+    <input type="checkbox"
+           {% if visible is True %}checked{% endif %}
+           class="toggle-column {{ id }}"
+           data-column="{{ field }}" />
+    {{ header }}
+</label>
+{% endif %}
+{% endfor %}

@@ -1,0 +1,43 @@
+<div class="datatable-filters mb-2 mt-2 {{ datatable.get_id }}">
+    {% for filter in datatable.filter_specs %}
+    <div class="dropdown d-inline-block">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            {{ filter.title }}
+        </button>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <form>
+                {% if filter.has_grouped_choices %}
+                {% for group, choices in filter.grouped_choices %}
+                <a class="dropdown-item pl-0">
+                    <label class="input-checkbox">
+                        <input type="checkbox" class="datatable-filter-group {{ datatable.get_id }}" id="{{ group.display }}" {% if group.checked %}checked{% endif %}" />
+                        <div class="input-checkbox__checkmark mr-3"></div>
+                        {{ group.display }}
+                    </label>
+                </a>
+                {% for choice in choices %}
+                <a class="dropdown-item pl-3">
+                    <label class="input-checkbox">
+                        <input type="checkbox" data-group="{{ group.display }}" class="datatable-filter {{ group.display }} {{ id }}" {% if choice.checked %}checked{% endif %} name="{{ choice.query_string|iriencode }}" />
+                        <div class="input-checkbox__checkmark mr-3"></div>
+                        {{ choice.display }}
+                    </label>
+                </a>
+                {% endfor %}
+                {% endfor %}
+                {% else %}
+                {% for choice in filter.choices %}
+                <a class="dropdown-item pl-0">
+                    <label class="input-checkbox">
+                        <input type="checkbox" class="datatable-filter {{ datatable.get_id }}" {% if choice.checked %}checked{% endif %} name="{{ choice.query_string|iriencode }}" />
+                        <div class="input-checkbox__checkmark mr-3"></div>
+                        {{ choice.display }}
+                    </label>
+                </a>
+                {% endfor %}
+                {% endif %}
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
