@@ -1,1 +1,1 @@
-<a class="btn btn-secondary csv-button {{ datatable.get_id }}" href="?format=csv">Export table</a>
+{% if datatable.view.exportable %}<a class="btn btn-secondary csv-button {{ datatable.get_id }}" href="?format=csv">Export table</a>{% endif %}

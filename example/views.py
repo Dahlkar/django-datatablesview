@@ -23,6 +23,13 @@ class PersonTable(DatatableView):
         'last_name',
     ]
     exportable = True
+    table_config = {
+        "language": {
+            "paginate": {
+                "next": "n",
+            }
+        }
+    }
 
     def first_name(self, obj):
         if self.request.GET.get('format') == 'csv':
