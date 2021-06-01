@@ -10,7 +10,7 @@
                 {% for group, choices in filter.grouped_choices %}
                 <a class="dropdown-item pl-0">
                     <label class="input-checkbox">
-                        <input type="checkbox" class="datatable-filter-group {{ datatable.get_id }}" id="{{ group.display }}" {% if group.checked %}checked{% endif %}" />
+                        <input type="checkbox" class="datatable-filter-group {{ datatable.get_id }}" id="{{ group.display }}" {% if group.checked %}checked{% endif %} />
                         <div class="input-checkbox__checkmark mr-3"></div>
                         {{ group.display }}
                     </label>

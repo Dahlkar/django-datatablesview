@@ -14,6 +14,7 @@ class PersonTable(DatatableView):
         ('date_of_birth', 'Birthday', {"togglable": True, "visible": False}),
         'age',
         'job',
+        ('pk', None, {"visible": False}),
     ]
     list_filters = [
         ('job',),
@@ -28,7 +29,9 @@ class PersonTable(DatatableView):
             "paginate": {
                 "next": "n",
             }
-        }
+        },
+        "rowId": 'pk',
+        "select": 'multi',
     }
 
     def first_name(self, obj):
