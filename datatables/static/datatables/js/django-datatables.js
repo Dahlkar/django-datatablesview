@@ -28,6 +28,12 @@ function datatableify(table) {
                 if (searchstring)
                     d["main_search"] = searchstring;
                 d["filters"] = [];
+                $(".datatable-filter-date").each(function(){
+                    // Simple verification to avoid uninitialized or cleared values.
+                    if (/.+=.+/.test(this.value)) {
+                        d["filters"].push(this.value)
+                    }
+                });
                 $(".datatable-filters."+id+" input:checkbox:checked.datatable-filter").each(function() {
                     d["filters"].push(this.name);
                 });
@@ -49,6 +55,22 @@ function datatableify(table) {
     const settings = Object.assign(default_settings, datatable.data('config'));
     settings.ajax.data = data_func;
     var table = datatable.DataTable(settings);
+
+    const date_filter_selector = $('.datatable-filter-date')
+    date_filter_selector.each(function() {
+        new DateTime($(this), {
+            format: 'yyyy-MM-dd HH:mm',
+            buttons: { clear: true },
+            locale: settings.language.dateTimePickerLocale || 'en',
+            i18n: settings.language.dateTimePicker || {}
+        });
+        $(this).on('change', function(){
+            const name = $(this).attr('name')
+            const val = $(this).val();
+            $(this).attr('value', name + '=' + val)
+            table.draw();
+        });
+    })
 
     $('.datatable-filter.'+id).on('change', function(){
         var className = 'input:checkbox:checked.'+this.className.split(" ").join('.');

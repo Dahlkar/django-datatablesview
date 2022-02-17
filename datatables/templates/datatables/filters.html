@@ -6,7 +6,15 @@
         </button>
         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
             <form>
-                {% if filter.has_grouped_choices %}
+                {% if filter.is_date %}
+                {% for endpoint in filter.endpoints %}
+                    <a class="dropdown-item bg-transparent pl-3">
+                        {{ endpoint.display }}
+                        <div class="mr-3"></div>
+                        <input type="hidden" class="datatable-filter-date" name="{{ endpoint.lookup }}"/>
+                    </a>
+                {% endfor %}
+                {% elif filter.has_grouped_choices %}
                 {% for group, choices in filter.grouped_choices %}
                 <a class="dropdown-item pl-0">
                     <label class="input-checkbox">

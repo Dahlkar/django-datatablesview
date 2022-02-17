@@ -241,3 +241,40 @@ else:
 
 
     FieldListFilter.register(lambda f: isinstance(f, ArrayField), ArrayFieldListFilter)
+
+
+class DateTimeFieldListFilter(FieldListFilter):
+    def __init__(self, field, model, field_path, **settings):
+        super().__init__(field, model, field_path)
+        self.lookup_kwarg = '%s__' % field_path
+        self._endpoints = settings.get('endpoints')
+
+        if settings.get('title'):
+            self.title = settings.get('title')
+        elif hasattr(field, 'verbose_name'):
+            self.title = field.verbose_name.capitalize()
+        self.is_date = True
+
+    @staticmethod
+    def valid_predicates():
+        return ['gte', 'lte', 'gt', 'lt']
+
+    @classmethod
+    def contains_valid_predicate(cls, f):
+        return any(i for i in cls.valid_predicates() if i in f)
+
+    def endpoints(self):
+        for endpoint in self._endpoints:
+            yield {
+                'lookup': self.lookup_kwarg + endpoint['predicate'],
+                'display': endpoint['label']
+            }
+
+    def choices(self, changelist):
+        yield {}
+
+    def expected_parameters(self):
+        return []
+
+
+FieldListFilter.register(lambda f: isinstance(f, models.DateTimeField), DateTimeFieldListFilter)
