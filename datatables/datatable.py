@@ -8,7 +8,7 @@ from django.db import models
 from django.core.paginator import Paginator
 from django.utils.timezone import get_current_timezone
 
-from .datatable_filters import FieldListFilter
+from .datatable_filters import FieldListFilter, DateTimeFieldListFilter
 from .utils import (
     label_for_field,
     format_datetime,
@@ -207,7 +207,7 @@ class Datatable:
         return query
 
     def parse_filters(self):
-        filters = [i.split("=") for i in self.request.GET.getlist('filters[]')]
+        filters = [i.split("=") for i in self.request.GET.getlist('filters[]') if len(i.split("=")) == 2]
         args = {}
         for f, a in filters:
             if '__in' in f or '__overlap' in f:
@@ -218,6 +218,11 @@ class Datatable:
                 else:
                     tmp.append(a)
                 args[f] = tmp
+            elif DateTimeFieldListFilter.contains_valid_predicate(f):
+                date, time = a.split(' ')
+                year, month, day = date.split('-')
+                hour, _ = time.split(':')
+                args[f] = datetime(int(year), int(month), int(day), int(hour))
             else:
                 args[f] = a
 
