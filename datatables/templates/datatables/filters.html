@@ -6,7 +6,12 @@
         </button>
         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
             <form>
-                {% if filter.is_date %}
+                {% if filter.is_wildcard %}
+                    <a class="dropdown-item bg-transparent pl-3">
+                        {{ filter.title }}
+                        <input class="datatable-wildcard" type="text" name="{{ filter.lookup }}">
+                    </a>
+                {% elif filter.is_date %}
                 {% for endpoint in filter.endpoints %}
                     <a class="dropdown-item bg-transparent pl-3">
                         {{ endpoint.display }}

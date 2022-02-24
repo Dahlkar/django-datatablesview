@@ -278,3 +278,26 @@ class DateTimeFieldListFilter(FieldListFilter):
 
 
 FieldListFilter.register(lambda f: isinstance(f, models.DateTimeField), DateTimeFieldListFilter)
+
+
+class WildcardListFilter(FieldListFilter):
+    def __init__(self, field, model, field_path, **settings):
+        super().__init__(field, model, field_path)
+        if settings.get('title'):
+            self.title = settings.get('title')
+        elif hasattr(field, 'verbose_name'):
+            self.title = field.verbose_name.capitalize()
+
+        self.lookup_kwarg = '%s__icontains' % field_path
+        self.lookup = self.lookup_kwarg
+
+        self.is_wildcard = True
+
+    def choices(self, changelist):
+        pass
+
+    def expected_parameters(self):
+        pass
+
+
+FieldListFilter.register(lambda f: isinstance(f, models.IntegerField), WildcardListFilter)

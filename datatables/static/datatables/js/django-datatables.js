@@ -28,10 +28,11 @@ function datatableify(table) {
                 if (searchstring)
                     d["main_search"] = searchstring;
                 d["filters"] = [];
-                $(".datatable-filter-date").each(function(){
+                $(".datatable-filter-date,.datatable-wildcard").each(function(){
                     // Simple verification to avoid uninitialized or cleared values.
-                    if (/.+=.+/.test(this.value)) {
-                        d["filters"].push(this.value)
+                    const value = this.name + "=" + this.value
+                    if (/.+=.+/.test(value)) {
+                        d["filters"].push(value)
                     }
                 });
                 $(".datatable-filters."+id+" input:checkbox:checked.datatable-filter").each(function() {
@@ -65,12 +66,15 @@ function datatableify(table) {
             i18n: settings.language.dateTimePicker || {}
         });
         $(this).on('change', function(){
-            const name = $(this).attr('name')
-            const val = $(this).val();
-            $(this).attr('value', name + '=' + val)
             table.draw();
         });
     })
+    const data_wildcard_selector = $('.datatable-wildcard');
+    data_wildcard_selector.each(function() {
+        $(this).on('input', function(){
+            table.draw();
+        })
+    });
 
     $('.datatable-filter.'+id).on('change', function(){
         var className = 'input:checkbox:checked.'+this.className.split(" ").join('.');
