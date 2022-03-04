@@ -277,4 +277,5 @@ class DateTimeFieldListFilter(FieldListFilter):
         return []
 
 
+FieldListFilter.register(lambda f: isinstance(f, models.DateField), DateTimeFieldListFilter)
 FieldListFilter.register(lambda f: isinstance(f, models.DateTimeField), DateTimeFieldListFilter)
