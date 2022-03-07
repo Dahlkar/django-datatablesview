@@ -30,22 +30,23 @@ $('document').ready(function(){
     }, 50);
 });
 
-function build_url_fragment(d) {
+function build_url_fragment(existing, d) {
     const page = d['start'] / d['length']
     const filters = d['filters'].join("&filter[]=")
     const search = d['search']['value']
     const order_col = d['order'][0]['column']
     const order_dir = d['order'][0]['dir']
 
-    const url = "#" +
+    let newUrlFragment = '#' +
+        (existing ? existing + '&' : '') +
         `page=${page}&order_col=${order_col}&order_dir=${order_dir}`+
         (search ? `&search=${search}` : '') +
-        (filters ? `&filter[]=${filters}` : '')
-    return encodeURI(url)
+        (filters ? `&filter[]=${filters}` : '');
+    return encodeURI(newUrlFragment)
 }
 
 function parse_url_fragment(url) {
-    return decodeURI(new URL(url).hash)
+    return decodeURI(url.hash)
         .substring(1)
         .split('&')
         .map((elem) => elem.split('='))
@@ -57,6 +58,7 @@ function parse_url_fragment(url) {
                 (acc[key] = acc[key] || []).push(`${value[1]}=${value[2]}`);
                 return acc
             } else {
+                acc['unparsed'] = (acc['unparsed'] || '') + value;
                 return acc;
             }
         }, {});
@@ -66,11 +68,14 @@ function datatableify(table) {
     const datatable = $(table);
     const id = datatable.data('id');
     const page_length = 25;
+    const url = new URL(document.URL);
     let page_index = 0;
     let search_history = null;
     let order_history = null;
 
-    const history_state = parse_url_fragment(document.URL);
+    const history_state = parse_url_fragment(url);
+    const unparsed_fragment = history_state.unparsed;
+    delete history_state.unparsed
     if(!jQuery.isEmptyObject(history_state))
     {
         page_index = history_state.page;
@@ -147,7 +152,7 @@ function datatableify(table) {
                     d["visible"].push($(this).attr('name'));
                 });
 
-                history.replaceState(null, '', build_url_fragment(d))
+                history.replaceState(null, '', build_url_fragment(unparsed_fragment, d))
             },
         },
         createdRow: function(row, data, dataIndex) {
