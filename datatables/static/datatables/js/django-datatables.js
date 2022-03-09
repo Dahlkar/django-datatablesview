@@ -8,82 +8,106 @@ $('document').ready(function(){
 
     setInterval(function(){
         $(".data-table")
-            .each(function(){
+            .each(function(){ // Remove tables that is hidden
                 const tableSelector = $(this);
                 const newId = tableSelector.data('id');
                 const tableEntry = tableList[newId];
                 if(!tableSelector.is(':visible') && tableEntry.visible){
                     tableEntry.visible = false;
                     tableEntry.table && tableEntry.table.destroy();
-                    history.replaceState(null, '', location.pathname)
+                    $('.datatable-filters.' + newId + ' #DataTables_Table_0_filter').remove();
                 }})
-            .each(function(){
+            .each(function(index){ // Add tables that is visible
                 const tableSelector = $(this);
                 const tableElement = tableSelector[0];
                 const newId = tableSelector.data('id');
                 const tableEntry = tableList[newId];
                 if(tableSelector.is(':visible') && !tableEntry.visible){
                     tableEntry.visible = true;
-                    tableEntry.table = datatableify(tableElement);
+                    tableEntry.table = datatableify(tableElement, index);
                 }
             });
     }, 50);
 });
 
-function build_url_fragment(existing, d) {
+function getContextFromUrl() {
+    // Table context format: table<index>{<contextData>}
+    let urlFragment = decodeURI(new URL(document.URL).hash).substring(1);
+    return {
+        urlFragment: urlFragment,
+        matchedGroups: [...urlFragment.matchAll(/table([\d]){(.*?)}/g)]
+            .reduce((acc, elem) => {
+                return {...acc, [elem[1]]: elem[2]}
+            }, {})
+    }
+}
+
+function buildUrlFragment(index, d) {
     const page = d['start'] / d['length']
     const filters = d['filters'].join("&filter[]=")
     const search = d['search']['value']
-    const order_col = d['order'][0]['column']
-    const order_dir = d['order'][0]['dir']
+    const order = d['order'].length > 0 ?
+        `&order_col=${d['order'][0]['column']}` +
+        `&order_dir=${d['order'][0]['dir']}` : ''
 
-    let newUrlFragment = '#' +
-        (existing ? existing + '&' : '') +
-        `page=${page}&order_col=${order_col}&order_dir=${order_dir}`+
+    const context = getContextFromUrl();
+    const contextData = `page=${page}${order}`+
         (search ? `&search=${search}` : '') +
-        (filters ? `&filter[]=${filters}` : '');
-    return encodeURI(newUrlFragment)
+        (filters ? `&filter[]=${filters}` : '')
+
+    let newUrlFragment = ""
+    if(index in context.matchedGroups){
+        newUrlFragment = context.urlFragment.replace(context.matchedGroups[index], contextData);
+    }
+    else if (context.urlFragment !== ""){
+        newUrlFragment = context.urlFragment + `&table${index}{${contextData}}`;
+    }
+    else {
+        newUrlFragment = `table${index}{${contextData}}`;
+    }
+    return encodeURI('#' + newUrlFragment);
 }
 
-function parse_url_fragment(url) {
-    return decodeURI(url.hash)
-        .substring(1)
-        .split('&')
-        .map((elem) => elem.split('='))
-        .reduce((acc, value) => {
-            if (value.length === 2) { // Handle "xxx=yyy"
-                return {...acc, [value[0]]: value[1]}
-            } else if(value.length === 3) { // Handle "xxx[]=yyy=zzz"
-                const key = value[0].slice(0, -2);
-                (acc[key] = acc[key] || []).push(`${value[1]}=${value[2]}`);
-                return acc
-            } else {
-                acc['unparsed'] = (acc['unparsed'] || '') + value;
-                return acc;
-            }
-        }, {});
+function parseUrlFragment(index) {
+    const context = getContextFromUrl();
+    if(index in context.matchedGroups){
+        return context.matchedGroups[index]
+            .split('&')
+            .map((elem) => elem.split('='))
+            .reduce((acc, value) => {
+                if (value.length === 2) { // Handle "xxx=yyy"
+                    return {...acc, [value[0]]: value[1]}
+                } else if (value.length === 3) { // Handle "xxx[]=yyy=zzz"
+                    const key = value[0].slice(0, -2);
+                    (acc[key] = acc[key] || []).push(`${value[1]}=${value[2]}`);
+                    return acc
+                } else {
+                    return acc;
+                }
+            }, {});
+    }
+    return {};
 }
 
-function datatableify(table) {
+function datatableify(table, index) {
     const datatable = $(table);
     const id = datatable.data('id');
     const page_length = 25;
-    const url = new URL(document.URL);
     let page_index = 0;
     let search_history = null;
     let order_history = null;
 
-    const history_state = parse_url_fragment(url);
-    const unparsed_fragment = history_state.unparsed;
-    delete history_state.unparsed
+    const history_state = parseUrlFragment(index);
     if(!jQuery.isEmptyObject(history_state))
     {
         page_index = history_state.page;
         search_history = history_state.search || null;
-        order_history = [{
-            'column': history_state.order_col,
-            'dir': history_state.order_dir
-        }]
+        if(history_state.order_col && history_state.order_dir){
+            order_history = [{
+                'column': history_state.order_col,
+                'dir': history_state.order_dir
+            }]
+        }
         if(history_state.filter){
             $(".datatable-filters." + id + " input:checkbox.datatable-filter").each(function () {
                 if(history_state.filter.indexOf(this.name) > -1) {
@@ -152,7 +176,7 @@ function datatableify(table) {
                     d["visible"].push($(this).attr('name'));
                 });
 
-                history.replaceState(null, '', build_url_fragment(unparsed_fragment, d))
+                history.replaceState(null, '', buildUrlFragment(index, d))
             },
         },
         createdRow: function(row, data, dataIndex) {
