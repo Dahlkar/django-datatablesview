@@ -14,6 +14,7 @@ class Person(models.Model):
     first_name = models.CharField(max_length=32)
     last_name = models.CharField(max_length=32)
     date_of_birth = models.DateField()
+    education = models.CharField(max_length=32, null=True, blank=True)
 
     @property
     def age(self):
