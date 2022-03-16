@@ -192,7 +192,7 @@ function datatableify(table, index) {
     const date_filter_selector = $('.datatable-filter-date')
     date_filter_selector.each(function() {
         new DateTime($(this), {
-            format: 'yyyy-MM-dd HH:mm',
+            format: 'yyyy-MM-DD HH:mm',
             buttons: { clear: true },
             locale: settings.language.dateTimePickerLocale || 'en',
             i18n: settings.language.dateTimePicker || {}
