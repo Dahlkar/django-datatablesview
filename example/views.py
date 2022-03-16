@@ -14,10 +14,31 @@ class PersonTable(DatatableView):
         ('date_of_birth', 'Birthday', {"togglable": True, "visible": False}),
         'age',
         'job',
+        'education',
         ('pk', None, {"visible": False}),
     ]
     list_filters = [
         ('job',),
+        ('date_of_birth',
+         ('title', 'Date of birth'),
+         ('endpoints', [
+             {'label': 'From', 'predicate': 'gte'},
+             {'label': 'To', 'predicate': 'lte'}
+         ])
+         ),
+        ('education',
+         ('choices', (
+             ('Elementary', [
+                 ('Preschool', 'Preschool'),
+                 ('Middle school', 'Middle school'),
+                 ('High school', 'High school')]),
+             ('Collage', [
+                 ('Bachelor', 'Bachelor'),
+                 ('Masters', 'Masters'),
+                 ('Doctorate', 'Doctorate')]
+              ))),
+            ('grouped_choices', True)
+         )
     ]
     search_fields = [
         'first_name',
