@@ -48,6 +48,10 @@ class FieldListFilter(ListFilter):
         self.field = field
         self.field_path = field_path
         self.title = getattr(field, 'verbose_name', field_path)
+        # If the field has a verbose_name field but no value
+        # capitalize the field_path
+        if self.title is None:
+            self.title = field_path.capitalize()
         super().__init__(model)
 
     def has_output(self):

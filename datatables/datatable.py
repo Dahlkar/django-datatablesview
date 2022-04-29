@@ -100,8 +100,14 @@ class Datatable:
             field_path = None
             field, field_list_filter_class = list_filter, FieldListFilter.create
             if not isinstance(field, models.Field):
-                field_path = field
-                field = get_fields_from_path(self.model, field_path)[-1]
+                # For annotated data you have to specify the type
+                if 'field_type' in settings:
+                    # No path for annotated fields
+                    field_path = list_filter
+                    field = settings['field_type']()
+                else:
+                    field_path = field
+                    field = get_fields_from_path(self.model, field_path)[-1]
 
             spec = field_list_filter_class(
                 field, self.model, field_path=field_path,
