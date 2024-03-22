@@ -1,42 +1,42 @@
 import json
-
 from datetime import datetime
 
-from django.template.loader import render_to_string
 from django.contrib.admin.utils import get_fields_from_path
-from django.db import models
 from django.core.paginator import Paginator
+from django.db import models
+from django.template.loader import render_to_string
 from django.utils.timezone import get_current_timezone
 
-from .datatable_filters import FieldListFilter, DateTimeFieldListFilter
+from .datatable_filters import DateTimeFieldListFilter, FieldListFilter
 from .utils import (
-    label_for_field,
     format_datetime,
+    label_for_field,
 )
 
 
 class Datatable:
-    template = 'datatables/_datatable.html'
-    table_template = 'datatables/table.html'
-    filter_template = 'datatables/filters.html'
-    export_template = 'datatables/export.html'
-    toggle_template = 'datatables/toggle-columns.html'
+    template = "datatables/_datatable.html"
+    table_template = "datatables/table.html"
+    filter_template = "datatables/filters.html"
+    export_template = "datatables/export.html"
+    toggle_template = "datatables/toggle-columns.html"
     config = {}
 
     def __init__(
-            self,
-            request,
-            model,
-            view,
-            columns,
-            update_interval,
-            filters=[],
-            filter_lookup=[],
-            ordering=[],
-            search_fields=[],
-            table_search_fields=[],
-            config={},
-            show_columns=True,
+        self,
+        request,
+        model,
+        view,
+        columns,
+        update_interval,
+        filters=[],
+        filter_lookup=[],
+        ordering=[],
+        search_fields=[],
+        table_search_fields=[],
+        config={},
+        paginate_by=25,
+        show_columns=True,
     ):
         self.request = request
         self.model = model
@@ -56,16 +56,17 @@ class Datatable:
         self.show_columns = show_columns
         self.update_interval = update_interval
         self.exportable = view.exportable
+        self.paginate_by = paginate_by
 
     def __str__(self):
         return render_to_string(self.template, self.get_context())
 
     def get_context(self):
         return {
-            'id': self.get_id(),
-            'datatable': self,
-            'columns': self.get_columns(),
-            'config': self.get_config(),
+            "id": self.get_id(),
+            "datatable": self,
+            "columns": self.get_columns(),
+            "config": self.get_config(),
         }
 
     def table(self):
@@ -101,16 +102,18 @@ class Datatable:
             field, field_list_filter_class = list_filter, FieldListFilter.create
             if not isinstance(field, models.Field):
                 # For annotated data you have to specify the type
-                if 'field_type' in settings:
+                if "field_type" in settings:
                     # No path for annotated fields
                     field_path = list_filter
-                    field = settings['field_type']()
+                    field = settings["field_type"]()
                 else:
                     field_path = field
                     field = get_fields_from_path(self.model, field_path)[-1]
 
             spec = field_list_filter_class(
-                field, self.model, field_path=field_path,
+                field,
+                self.model,
+                field_path=field_path,
                 **settings,
             )
             if spec and spec.has_output():
@@ -148,7 +151,7 @@ class Datatable:
         if hasattr(self.view, column):
             view_func = getattr(self.view, column)
             attr = view_func(item)
-        elif '__' in column:
+        elif "__" in column:
             fields = column.split("__")
             attr = item
             for field in fields:
@@ -164,17 +167,17 @@ class Datatable:
                 attr = format_datetime(attr)
 
         if attr is None:
-            attr = '-'
+            attr = "-"
 
         return str(attr)
 
     def _get_attr(self, item, column):
-        if hasattr(item, f'get_{column}_display'):
-            attr = getattr(item, f'get_{column}_display')()
+        if hasattr(item, f"get_{column}_display"):
+            attr = getattr(item, f"get_{column}_display")()
         elif hasattr(item, column):
             attr = getattr(item, column)
         else:
-            attr = ''
+            attr = ""
 
         return attr
 
@@ -198,13 +201,13 @@ class Datatable:
     def _create_search_query(self, fields, search):
         q = models.Q()
         for search_field in fields:
-            q |= models.Q(**{f'{search_field}__icontains': search})
+            q |= models.Q(**{f"{search_field}__icontains": search})
 
         return q
 
     def parse_search(self):
-        search = self.request.GET.get('main_search')
-        table_search = self.request.GET.get('search[value]')
+        search = self.request.GET.get("main_search")
+        table_search = self.request.GET.get("search[value]")
         query = models.Q()
         if search:
             query &= self._create_search_query(self.search_fields, search)
@@ -213,10 +216,14 @@ class Datatable:
         return query
 
     def parse_filters(self):
-        filters = [i.split("=") for i in self.request.GET.getlist('filters[]') if len(i.split("=")) == 2]
+        filters = [
+            i.split("=")
+            for i in self.request.GET.getlist("filters[]")
+            if len(i.split("=")) == 2
+        ]
         args = {}
         for f, a in filters:
-            if '__in' in f or '__overlap' in f:
+            if "__in" in f or "__overlap" in f:
                 tmp = args.get(f, [])
                 if a in self.filter_lookup:
                     a = self.filter_lookup.get(a)
@@ -225,9 +232,9 @@ class Datatable:
                     tmp.append(a)
                 args[f] = tmp
             elif DateTimeFieldListFilter.contains_valid_predicate(f):
-                date, time = a.split(' ')
-                year, month, day = date.split('-')
-                hour, _ = time.split(':')
+                date, time = a.split(" ")
+                year, month, day = date.split("-")
+                hour, _ = time.split(":")
                 args[f] = datetime(int(year), int(month), int(day), int(hour))
             else:
                 args[f] = a
@@ -242,30 +249,28 @@ class Datatable:
         return query
 
     def parse_page_info(self):
-        page_size = int(self.request.GET.get("length", 25))
+        page_size = int(self.request.GET.get("length", self.paginate_by))
         page = int(self.request.GET.get("start", 0)) / page_size
         return (page + 1, page_size)
 
     def parse_ordering(self):
         sort_cols = self.ordering
         for i in range(0, len(self.columns)):
-            sort_col = self.request.GET.get(f'order[{i}][column]')
+            sort_col = self.request.GET.get(f"order[{i}][column]")
             if sort_col is None:
                 return sort_cols
             sort_col = int(sort_col)
             col = self.columns[sort_col]
             if isinstance(col, tuple):
                 col = col[0]
-            sort_dir = '-' if self.request.GET.get(f'order[{i}][dir]') == 'desc' else ''
+            sort_dir = "-" if self.request.GET.get(f"order[{i}][dir]") == "desc" else ""
             sort_col_name = sort_dir + col
             sort_cols.append(sort_col_name)
 
         return sort_cols
 
     def get_table_columns(self):
-        """
-        Generate the list column headers.
-        """
+        """Generate the list column headers."""
         columns = []
         orderable = self.get_orderable_columns()
         for field_name in self.columns:
@@ -274,8 +279,8 @@ class Datatable:
             if isinstance(field_name, tuple):
                 try:
                     settings = field_name[2]
-                    visible = settings.get('visible', True)
-                    togglable = settings.get('togglable', False)
+                    visible = settings.get("visible", True)
+                    togglable = settings.get("togglable", False)
                 except IndexError:
                     pass
                 label = field_name[1]
@@ -283,6 +288,8 @@ class Datatable:
             else:
                 label = label_for_field(field_name, self.model, self.view)
 
-            columns.append((label, field_name, field_name in orderable, visible, togglable))
+            columns.append(
+                (label, field_name, field_name in orderable, visible, togglable)
+            )
 
         return columns

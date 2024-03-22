@@ -1,7 +1,9 @@
-from django.views import generic
-from django.utils.html import format_html
 from django.urls import reverse
+from django.utils.html import format_html
+from django.views import generic
+
 from datatables.views import DatatableView
+
 from .models import Person
 
 
@@ -54,6 +56,7 @@ class PersonTable(DatatableView):
         "rowId": 'pk',
         "select": 'multi',
     }
+    paginate_by = 1
 
     def first_name(self, obj):
         if self.request.GET.get('format') == 'csv':

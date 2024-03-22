@@ -10,7 +10,7 @@ from .utils import PassThroughWriter
 
 
 class DatatableView(TemplateView):
-    template_name = 'datatables/datatable.html'
+    template_name = "datatables/datatable.html"
     model = None
     columns = None
     list_filters = None
@@ -23,6 +23,7 @@ class DatatableView(TemplateView):
     filters = None
     exportable = False
     update_interval = 60000  # Milliseconds
+    paginate_by = 25
 
     def dispatch(self, request, *args, **kwargs):
         self.init_datatable(request, **kwargs)
@@ -41,6 +42,7 @@ class DatatableView(TemplateView):
             self.get_search_fields(),
             self.get_table_search_fields(),
             self.get_table_config(**kwargs),
+            self.get_paginate_by(),
         )
         if self.lookup_opts:
             self.datatable.lookup_opts = self.lookup_opts
@@ -53,7 +55,7 @@ class DatatableView(TemplateView):
         return self.update_interval
 
     def get_export_columns(self):
-        return self.request.GET.getlist('visible[]')
+        return self.request.GET.getlist("visible[]")
 
     def get_list_filters(self):
         return self.list_filters or []
@@ -76,14 +78,17 @@ class DatatableView(TemplateView):
     def get_table_config(self, **kwargs):
         return self.table_config or {}
 
+    def get_paginate_by(self):
+        return self.paginate_by
+
     def get_queryset(self):
         qs = self.model.objects.all()
         return qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['main_search'] = self.request.GET.get('main_search', '')
-        context['datatable'] = self.datatable
+        context["main_search"] = self.request.GET.get("main_search", "")
+        context["datatable"] = self.datatable
         return context
 
     def render_to_json_response(self):
@@ -93,28 +98,37 @@ class DatatableView(TemplateView):
     def download_as_csv(self):
         def csv_row_generator(query_set):
             writer = csv.writer(PassThroughWriter())
-            headers = [c[1] if isinstance(c, tuple) else c for c in self.get_export_columns()]
+            headers = [
+                c[1] if isinstance(c, tuple) else c for c in self.get_export_columns()
+            ]
 
             yield writer.writerow(headers)
 
             for obj in query_set:
-                row = [self.datatable.get_column_value(obj, c, raw=True) for c in self.get_export_columns()]
+                row = [
+                    self.datatable.get_column_value(obj, c, raw=True)
+                    for c in self.get_export_columns()
+                ]
                 yield writer.writerow(row)
 
         query_set = self.get_data()
-        response = StreamingHttpResponse(csv_row_generator(query_set), content_type='text/csv')
-        filename = self.model._meta.verbose_name_plural + "_{:%Y-%m-%dT%H-%M}".format(datetime.now())
-        filename = filename.replace(' ', '_')
-        response['Content-Disposition'] = f'attachment; filename="{filename}.csv"'
+        response = StreamingHttpResponse(
+            csv_row_generator(query_set), content_type="text/csv"
+        )
+        filename = self.model._meta.verbose_name_plural + "_{:%Y-%m-%dT%H-%M}".format(
+            datetime.now()
+        )
+        filename = filename.replace(" ", "_")
+        response["Content-Disposition"] = f'attachment; filename="{filename}.csv"'
         return response
 
     def get_data(self):
         return self.datatable.get_queryset()
 
     def get(self, request, *args, **kwargs):
-        if request.GET.get('format') == 'json':
+        if request.GET.get("format") == "json":
             return self.render_to_json_response()
-        elif request.GET.get('format') == 'csv':
+        elif request.GET.get("format") == "csv":
             return self.download_as_csv()
         else:
             context = self.get_context_data()

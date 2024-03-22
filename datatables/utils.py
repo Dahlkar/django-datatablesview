@@ -12,7 +12,8 @@ from django.core.exceptions import (
 
 
 class PassThroughWriter:
-    """ Can be used with StreamingHttpResponse to avoid buffering. """
+    """Can be used with StreamingHttpResponse to avoid buffering."""
+
     def write(self, value):
         return value
 
@@ -31,8 +32,8 @@ def label_for_field(name, model, view=None, return_attr=False):
     None if (and only if) the name refers to a field.
     """
     attr = None
-    if '__' in name:
-        names = name.split('__')
+    if "__" in name:
+        names = name.split("__")
         model_names = names[:-1]
         for name in model_names:
             model = model._meta.get_field(name).related_model
@@ -66,9 +67,11 @@ def label_for_field(name, model, view=None, return_attr=False):
 
                 if hasattr(attr, "short_description"):
                     label = attr.short_description
-                elif (isinstance(attr, property) and
-                      hasattr(attr, "fget") and
-                      hasattr(attr.fget, "short_description")):
+                elif (
+                    isinstance(attr, property)
+                    and hasattr(attr, "fget")
+                    and hasattr(attr.fget, "short_description")
+                ):
                     label = attr.fget.short_description
                 elif callable(attr):
                     if attr.__name__ == "<lambda>":

@@ -93,7 +93,7 @@ function parseUrlFragment(index) {
 function datatableify(table, index) {
     const datatable = $(table);
     const id = datatable.data('id');
-    const page_length = 25;
+    const page_length = datatable.data('length');
     let page_index = 0;
     let search_history = null;
     let order_history = null;
