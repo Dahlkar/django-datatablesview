@@ -1,0 +1,68 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "django-datatablesview"
+description = "A Django app that integrates with DataTables.net javascript api."
+authors = [
+        { name = "Dahlkar", email = "johan.dahlkar@gmail.com"}
+]
+licence = { file = "LICENCE" }
+readme = "README.md"
+requires-python = ">=3.6"
+dependencies = [
+    "django>=2.1"
+]
+dynamic = [
+    "version"
+]
+classifiers = [
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+
+[project.urls]
+Homepage = "https://github.com/dahlkar/django-datatables"
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "D",
+]
+ignore = [
+    "D1",
+]
+
+[tool.hatch.version]
+path = "datatables/__about__.py"
+
+[tool.hatch.build.targets.sdist]
+include = ["/datatables"]
+
+[tool.hatch.build.targets.wheel]
+include = ["datatables"]
+
+[tool.hatch.envs.example.scripts]
+run = "./manage.py runserver"
+migrate = "./manage.py migrate"
+csu = "./manage.py createsuperuser"
+
+[tool.hatch.envs.lint]
+skip-install = true
+dependencies = [
+    "ruff"
+]
+
+[tool.hatch.envs.lint.scripts]
+run = "ruff format datatables"
