@@ -250,7 +250,11 @@ class Datatable:
 
     def parse_page_info(self):
         page_size = int(self.request.GET.get("length", self.paginate_by))
-        page = int(self.request.GET.get("start", 0)) / page_size
+        try:
+            page = int(self.request.GET.get("start", 0)) / page_size
+        except ValueError:
+            page = 0
+
         return (page + 1, page_size)
 
     def parse_ordering(self):
