@@ -234,8 +234,8 @@ class Datatable:
             elif DateTimeFieldListFilter.contains_valid_predicate(f):
                 date, time = a.split(" ")
                 year, month, day = date.split("-")
-                hour, _ = time.split(":")
-                args[f] = datetime(int(year), int(month), int(day), int(hour))
+                hour, minute = time.split(":")
+                args[f] = datetime(int(year), int(month), int(day), int(hour), int(minute))
             else:
                 args[f] = a
 
